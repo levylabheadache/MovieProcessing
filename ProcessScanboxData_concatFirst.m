@@ -12,11 +12,14 @@ dataDir =  'D:\2photon\Simone\Simone_Vasculature\'; %  'D:\2photon\Simone\Simone
 dataSet = 'Vasculature'; %'Macrophage'; % 'AffCSD'; %  'Pollen'; 'Vasculature'; 'Astrocyte'; %  'Anatomy'; %  'Neutrophil_Simone'; %  'NGC'; % 'Neutrophil'; % 'Afferents'
 [regParam, projParam] = DefaultProcessingParams(dataSet); % get default parameters for processing various types of data
 
+regParam.method = 'rigid';
+regParam.name = 'rigid';
+
 % TODO --- Set data spreadsheet directory
 dataTablePath = 'R:\Levy Lab\2photon\ImagingDatasets.xlsx'; % 'R:\Levy Lab\2photon\ImagingDatasetsSimone2.xlsx';
 dataTable = readcell(dataTablePath, 'sheet',dataSet);  % 'NGC', ''
 colNames = dataTable(1,:); dataTable(1,:) = [];
-dataCol = struct('mouse',find(contains(colNames, 'Mouse')), 'date',find(contains(colNames, 'Date')), 'FOV',find(contains(colNames, 'FOV')), ...
+dataCol = struct('mouse',find(contains(colNames, 'Mouse')), 'date',find(contains(colNames, 'Date')), 'FOV',find(contains(colNames, 'FOV')), 'vascChan',find(contains(colNames, 'VascChan')),...
     'volume',find(contains(colNames, 'Volume')), 'run',find(contains(colNames, 'Runs')), 'Ztop',find(contains(colNames, 'Zbot')), 'Zbot',find(contains(colNames, 'Ztop')), 'csd',find(contains(colNames, 'CSD')), ...
     'ref',find(contains(colNames, 'Ref')), 'edges',find(contains(colNames, 'Edge')), 'Zproj',find(contains(colNames, 'Zproj')), 'done',find(contains(colNames, 'Done')));
 Nexpt = size(dataTable, 1);
@@ -51,6 +54,7 @@ for x = xPresent  %30 %x2D % x2Dcsd % x3D %% 51
                 fprintf('\nGetLocoState failed for %s', expt{x}.name)
             end
         end
+
         % Determine reference run and scans (longest pre-CSD epoch of stillness) 
         [~,tformPath]= FileFinder(expt{x}.dir, 'contains','regTform');
         if isempty(tformPath)
@@ -59,11 +63,13 @@ for x = xPresent  %30 %x2D % x2Dcsd % x3D %% 51
             a = load(tformPath{1}, 'params');
             regParam = a.params; clearvars a; % load previously set regParam, if it exists
         end
+
         % Show the scans used to define the reference
-        figure;
+        refScanFig = figure;
         plot(loco{x}(regParam.refRun).Vdown); hold on; line(regParam.refScan([1,end]), [0,0], 'color','k', 'linewidth',1.5); % show the period to be used as the reference
         title(sprintf('refRun = %i', regParam.refRun)); ylabel('Velocity (cm/s)'); xlabel('Scan/Frame')
-        
+        savefig(refScanFig, fullfile(expt{x}.dir,['refScanFig.fig']));
+
         regParam.refScan = regParam.refScan + expt{x}.scanLims(regParam.refRun);
     else
         % Set reference run/scans by hand, if desired
@@ -103,6 +109,7 @@ for x = xPresent  %30 %x2D % x2Dcsd % x3D %% 51
     end
 
     % Write projections of concatenated data at various stages of processing
+    %TODO: set the projParam.z to the frames that you would like to process
     projParam.umPerPixel_target = expt{x}.umPerPixel; % set to expt{x}.umPerPixel to avoid spatial downsampling, otherwise give a number
     projParam.edge = [80,80,40,40];  % [80,80,40,40], crop these many pixels from the [L,R,T,B] edges
     %projParam.z = {5, 5:7}; %{4:5, 5:7}{5, 7:8} {3:12}; %{17:22, 24:27, 18, 19, 20, 21, 22, 23}; %{3:17, 18:28, 18, 19, 20, 21, 22, 23}; %{17:22, 23:30}; %{29:56, 5:25}; % {7:10, 18:20, 27:30};  % 1; %
