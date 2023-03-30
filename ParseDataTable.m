@@ -12,7 +12,12 @@ projParam = IP.Results.projParam;
 
 % Experiment metadata
 expt.mouse = dataTable{x,dataCol.mouse};
-expt.date = dataTable{x,dataCol.date}; if isnumeric(expt.date), expt.date = num2str(expt.date); end
+expt.date = dataTable{x,dataCol.date}; 
+
+if isnumeric(expt.date)
+   expt.date = num2str(expt.date); 
+end
+
 if any(ismissing(dataTable{x,dataCol.FOV})) % check if an FOV # is specified
     expt.fov = 1;
     expt.dir = sprintf('%s%s\\%s\\', dataDir, expt.mouse, expt.date); % sprintf('%s%s\\%s_FOV%i_%s\\', dataDir, expt.mouse, expt.date, expt.fov, expt.mouse);
@@ -20,7 +25,9 @@ if any(ismissing(dataTable{x,dataCol.FOV})) % check if an FOV # is specified
 else
     expt.fov = dataTable{x,dataCol.FOV};
     %if ischar(expt.fov), expt.fov = str2double(expt.fov); end
-    if isnumeric(expt.fov), expt.fov = num2str(expt.fov); end
+    if isnumeric(expt.fov)
+       expt.fov = num2str(expt.fov); 
+    end
     expt.dir = sprintf('%s%s\\%s_FOV%s\\', dataDir, expt.mouse, expt.date, expt.fov); % sprintf('%s%s\\%s_FOV%i_%s\\', dataDir, expt.mouse, expt.date, expt.fov, expt.mouse);
     expt.name = sprintf('%s_%s_FOV%s', expt.mouse, expt.date, expt.fov); 
 end
@@ -36,11 +43,14 @@ if exist(expt.dir, 'dir')
         runFolders = FileFinder(expt.dir, 'contains','run', 'type',0);
         [expt.runs, ~] = sort(cellfun(@GetRunNumber, runFolders, 'UniformOutput',true)', 'ascend'); %#ok<UDIM>  sortInd
         expt.Nruns = numel(expt.runs);
+
+        % Check for Reference channel
         if ~isempty(dataCol.ref)
             expt.refChan = dataTable{x,dataCol.ref}; % determine which channel to use as reference for registration and concatenation
         else
             expt.refChan = 'green';
         end
+
         % Check for CSD runs
         missingData = cellfun(@all, cellfun(@ismissing, dataTable, 'UniformOutput',false), 'UniformOutput',true );
         if isempty(dataCol.csd) || missingData(x,dataCol.csd)
@@ -55,7 +65,14 @@ if exist(expt.dir, 'dir')
             expt.preRuns = 1:expt.csd(1)-1;
             expt.postRuns = expt.csd(1)+1:expt.Nruns;
         end
-            expt.vasc_chan = 'red';     
+        
+        % Check for Vascular channel
+        if ~isempty(dataCol.vascChan)
+            expt.vascChan = dataTable{x,dataCol.vascChan}; 
+        else
+            expt.vascChan = 'green';
+        end
+
     end
 
     % Get run metadata
