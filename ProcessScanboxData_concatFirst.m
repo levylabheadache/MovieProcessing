@@ -4,16 +4,16 @@
 clear; clc; close all;
 
 % TODO --- Set the directory of where animal folders are located
-dataDir =  'D:\2photon\Simone\Simone_Vasculature\'; %  'D:\2photon\Simone\Simone_Macrophages\'; %  'Z:\2photon\Simone\Simone_Macrophages\'; %  'D:\2photon\'; %  'D:\2photon\Simone\'; % 
+dataDir =  'D:\2photon\Simone\Simone_Macrophages\'; %  'D:\2photon\Simone\Simone_Macrophages\'; %  'D:\2photon\Simone\Simone_Vasculature\'
 
 % Parse data table
 
 % TODO --- Set excel sheet
-dataSet = 'Vasculature'; %'Macrophage'; % 'AffCSD'; %  'Pollen'; 'Vasculature'; 'Astrocyte'; %  'Anatomy'; %  'Neutrophil_Simone'; %  'NGC'; % 'Neutrophil'; % 'Afferents'
+dataSet = 'Macrophage'; %'Macrophage'; % 'AffCSD'; %  'Pollen'; 'Vasculature'; 'Astrocyte'; %  'Anatomy'; %  'Neutrophil_Simone'; %  'NGC'; % 'Neutrophil'; % 'Afferents'
 [regParam, projParam] = DefaultProcessingParams(dataSet); % get default parameters for processing various types of data
 
-regParam.method = 'rigid';
-regParam.name = 'rigid';
+regParam.method = 'affine';
+regParam.name = 'affine';
 
 % TODO --- Set data spreadsheet directory
 dataTablePath = 'R:\Levy Lab\2photon\ImagingDatasets.xlsx'; % 'R:\Levy Lab\2photon\ImagingDatasetsSimone2.xlsx';
@@ -29,7 +29,7 @@ dataTable(:,dataCol.date) = cellfun(@num2str, dataTable(:,dataCol.date), 'Unifor
 expt = cell(1,Nexpt); runInfo = cell(1,Nexpt); Tscan = cell(1,Nexpt); loco = cell(1,Nexpt); % Tcat = cell(1,Nexpt);
 
 % TODO --- Specify xPresent - row number(X) within excel sheet
-xPresent = 70; %; %13; %44; %[18,22,24,30:32]; % flip(100:102); %45:47; % [66:69];
+xPresent = 35; %; %13; %44; %[18,22,24,30:32]; % flip(100:102); %45:47; % [66:69];
 Npresent = numel(xPresent);
 overwrite = false;
 
@@ -68,14 +68,17 @@ for x = xPresent  %30 %x2D % x2Dcsd % x3D %% 51
         refScanFig = figure;
         plot(loco{x}(regParam.refRun).Vdown); hold on; line(regParam.refScan([1,end]), [0,0], 'color','k', 'linewidth',1.5); % show the period to be used as the reference
         title(sprintf('refRun = %i', regParam.refRun)); ylabel('Velocity (cm/s)'); xlabel('Scan/Frame')
-        savefig(refScanFig, fullfile(expt{x}.dir,['refScanFig.fig']));
-
+        
+        figPath = sprintf('%s%s_ReferenceScan', expt{x}.dir, expt{x}.name);
+        if ~exist(figPath, 'file') || overwrite
+            fprintf('\nSaving %s', figPath);
+            saveas(refScanFig, figPath)
+        end
+        
         regParam.refScan = regParam.refScan + expt{x}.scanLims(regParam.refRun);
     else
-        % Set reference run/scans by hand, if desired
         %regParam.refRun = 1;  % plot(loco{x}(regParam.refRun).Vdown)
-        %regParam.refScan = 19:115; %10917:11986; % scans WITHIN the reference run
-        regParam.refScan = 90:400;
+        regParam.refScan = 90:400; % Set reference run/scans by hand, if desired - scans WITHIN the reference run
     end
     
     % Concatenate unprocessed runs and metadata
