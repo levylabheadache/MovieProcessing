@@ -2,7 +2,8 @@ function MakeDeformPlot( deformData, deformName, TL, Xticks, Yticks, varargin )
 if nargin == 6
     deformLims = varargin{1};
 else
-    deformLims = [min(deformData(:)), max(deformData(:))];
+    %deformLims = [min(deformData(:)), max(deformData(:))]; 
+    deformLims = [min(deformData(:))-eps(), max(deformData(:))+eps()]; %changed 6/2/23 SCN trying to fix error of generating deformation plot for 2D data
 end
 if size(deformData,2) == 1
     plot( deformData );
