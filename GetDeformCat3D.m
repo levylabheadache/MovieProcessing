@@ -16,12 +16,18 @@ edge = IP.Results.edge;
 deformLim = IP.Results.deformLim;
 basePrct = IP.Results.basePrct; 
 windowSize = IP.Results.window;
-if mod(windowSize,2) ==0,  windowSize = windowSize+1; end
+
+if mod(windowSize,2) ==0  
+    windowSize = windowSize+1; 
+end
+
 show = IP.Results.show;
 overwrite = IP.Results.overwrite;
 savePath =sprintf('%s%s_deformation.mat', infoStruct.dir, infoStruct.exptName);
 regParams = struct();
+
 if ~exist(savePath, 'file') || overwrite
+
     % Determine limits of real deformation (vs TurboReg failed)
     if isempty(deformLim)
         deformLim = struct('trans',[-Inf, Inf], 'scale',[-Inf, Inf], 'stretch',[-Inf,Inf], 'shear',[-Inf, Inf], 'shift',[-Inf, Inf]); %'stretch',[-Inf,Inf], 
@@ -37,6 +43,7 @@ if ~exist(savePath, 'file') || overwrite
     % Get the results of rigid DFT shifting and z interpolation
     if infoStruct.Nplane > 1
         fprintf('\nGetting results of DFT registration');
+
         %{ 
         %  Old, run-based version
         for runs = flip(1:infoStruct.Nrun)
@@ -47,18 +54,22 @@ if ~exist(savePath, 'file') || overwrite
         deformResultStruct.CS_final = [shiftData.CS_final]';
         deformResultStruct.ZS_final = [shiftData.ZS_final]';
         %}
+
         [~,shiftPath] = FileFinder( expt.dir, 'type','mat', 'contains','dftshifts');
         if exist(shiftPath{1}, 'file')
             fprintf('\nLoading %s', shiftPath{1})
             shiftData = load(shiftPath{1});
         end
+
         deformResultStruct.RS_final = [shiftData.RS_final]';
         deformResultStruct.CS_final = [shiftData.CS_final]';
         deformResultStruct.ZS_final = [shiftData.ZS_final]';
 
         fprintf('\nGetting results of z interpolation');
+
         % Check if there's a main-folder zinterp file
         [~,interpPath] = FileFinder( expt.dir, 'type','mat', 'contains','zinterp');
+        
         if ~isempty(interpPath)
             interpData = load(interpPath{1});
             deformResultStruct.shiftZ = interpData.ZS'; %[interpData.ZS_chunk]' + [interpData.ZS1]';
@@ -77,6 +88,7 @@ if ~exist(savePath, 'file') || overwrite
     regTforms = []; affineParams = [];   
     [~, tformPath] = FileFinder(infoStruct.dir, 'type','mat', 'contains','regTforms'); %FileFind( infoStruct.dir, 'mat', false, @(x)(contains( x, '_affine_tforms' )) );
     if ~isempty(tformPath)
+
         % Load registration results
         regData = load( tformPath{1} ); %strcat(infoStruct.dir,infoStruct.name,'_affine_tforms.mat')
         if isfield(regData, 'regTform')
@@ -84,6 +96,7 @@ if ~exist(savePath, 'file') || overwrite
         elseif isfield(regData, 'tforms_all')
             regTforms = regData.tforms_all;
         end
+
         % Determine edges used for affine registration
         if isfield(regData, 'params')
             regParams = regData.params;
@@ -98,6 +111,7 @@ if ~exist(savePath, 'file') || overwrite
             end
         end
         fprintf('\nEdges used for affine registration: [L, R, T, B] = [%i, %i, %i, %i]', edge )
+
         % Get conversion factors
         %umPerPixel = (1/0.53)/digiZoom;
         MLpix = infoStruct(1).sz(1)-edge(3)-edge(4);
@@ -116,6 +130,7 @@ if ~exist(savePath, 'file') || overwrite
                 deformResultStruct.shearML(s,z) = regTforms{z,s}.T(2,1); % Shear ML (tilt down/right +/-) shear_y
             end
         end
+
         % Calculate stretch here so it can be used to censor bad datapoints
         deformResultStruct.stretchAP = (1/dT)*[nan(1,infoStruct.Nplane); diff(expt.umPerPixel*APpix./deformResultStruct.scaleAP, 1, 1)];
         deformResultStruct.stretchML = (1/dT)*[nan(1,infoStruct.Nplane); diff(expt.umPerPixel*MLpix./deformResultStruct.scaleML, 1, 1)];
@@ -151,6 +166,7 @@ if ~exist(savePath, 'file') || overwrite
 
     for runs = 1:infoStruct.Nrun
         subScans = scanLims(runs)+1:scanLims(runs+1);
+        
         % DFT REGISTRATION RESULTS
         deformSubStruct(runs).dft_RS = expt.umPerPixel*deformCensStruct.RS_final(subScans,:);
         deformSubStruct(runs).dft_CS = expt.umPerPixel*deformCensStruct.CS_final(subScans,:);
@@ -222,10 +238,14 @@ if show
     TL = [0.005,0];
     leftOpt = {[0.01,0.09], [0.06,0.04], [0.05,0.05]};  % {[vert, horz], [bottom, top], [left, right]}
     rightOpt = {[0.01,0.1], [0.06,0.04], [0.05,0.05]};  % {[vert, horz], [bottom, top], [left, right]}
-    close all; clearvars sp
-    figure('Units','normalized', 'OuterPosition',[0,0,1,1], 'Color','w', 'PaperOrientation','landscape');
+    close all; 
+    clearvars sp
+    
+    RegResults = figure('Units','normalized', 'OuterPosition',[0,0,1,1], 'Color','w', 'PaperOrientation','landscape');
+    
     if infoStruct.Nplane == 1
         planeTicks = 1;
+
         % Translation 
         sp(1) = subtightplot(6, 2, 1, rightOpt{:}); 
         MakeDeformPlot( deformResultStruct.transAP, 'AP Translation', TL, runTicks, planeTicks ) % , deformLim.trans
@@ -238,6 +258,7 @@ if show
         hold on;
         line([1,infoStruct.totScan], deformLim.trans(1)*[1,1], 'color','r', 'linestyle','--')
         line([1,infoStruct.totScan], deformLim.trans(2)*[1,1], 'color','r', 'linestyle','--')
+        
         % Scaling
         sp(3) = subtightplot(6, 2, 5, rightOpt{:});
         MakeDeformPlot( deformResultStruct.scaleAP, 'AP Scale', TL, runTicks, planeTicks ) % , deformLim.scale
@@ -249,6 +270,7 @@ if show
         hold on;
         line([1,infoStruct.totScan], deformLim.scale(1)*[1,1], 'color','r', 'linestyle','--')
         line([1,infoStruct.totScan], deformLim.scale(2)*[1,1], 'color','r', 'linestyle','--')
+        
         % Stretch
         %{
         sp(5) = subtightplot(6, 2, 9, rightOpt{:});
@@ -256,6 +278,7 @@ if show
         sp(6) = subtightplot(6, 2, 11, rightOpt{:});
         MakeDeformPlot( deformResultStruct.stretchML, 'ML Stretch', TL, timeTicks, planeTicks, deformLim.stretch )
         %}
+
         % Shearing
         sp(5) = subtightplot(6, 2, 9, rightOpt{:});
         MakeDeformPlot( deformResultStruct.shearAP, 'AP Shear', TL, runTicks, planeTicks ) % , deformLim.shear
@@ -270,17 +293,20 @@ if show
         xlabel('Frame');
         
         % Censored final results
+
         % Translation
         sp(9) = subtightplot(6, 2, 2, rightOpt{:});
         MakeDeformPlot(vertcat(deformSubStruct.transAP), 'AP Trans (um)', TL, runTicks, planeTicks, [-Inf,Inf] ) % deformLim.trans
         title('Final, Censored Deformation');
         sp(10) = subtightplot(6, 2, 4, rightOpt{:});
         MakeDeformPlot( vertcat(deformSubStruct.transML), 'ML Trans (um)', TL, runTicks, planeTicks, [-Inf,Inf] )
+        
         % Scaling
         sp(11) = subtightplot(6, 2, 6, rightOpt{:});
         MakeDeformPlot( vertcat(deformSubStruct.scaleAP), 'AP Scale (um)', TL, runTicks, planeTicks, [-Inf,Inf] ) % deformLim.scale
         sp(12) = subtightplot(6, 2, 8, rightOpt{:});
         MakeDeformPlot( vertcat(deformSubStruct.scaleML), 'ML Scale (um)', TL, runTicks, planeTicks, [-Inf,Inf] )  
+        
         % Stretch
         %{
         sp(13) = subtightplot(6, 2, 10, rightOpt{:});
@@ -288,6 +314,7 @@ if show
         sp(14) = subtightplot(6, 2, 12, rightOpt{:});
         MakeDeformPlot( vertcat(deformSubStruct.stretchML), 'ML Stretch (um/s)', TL, runTicks, planeTicks, [-Inf,Inf] )
         %}
+        
         % Shearing
         sp(13) = subtightplot(6, 2, 10, rightOpt{:});
         MakeDeformPlot( vertcat(deformSubStruct.shearAP), 'AP Shear', TL, runTicks, planeTicks, [-Inf,Inf] )
@@ -297,6 +324,15 @@ if show
         linkaxes(sp,'x');
         xlabel('Frame');
         xlim([1,infoStruct.totScan]) %axis tight;
+
+        % save the figure
+        figPath = sprintf('%s%s_RegResults', expt.dir, expt.name);
+        if ~exist(figPath, 'file') || overwrite
+            fprintf('\nSaving %s', figPath);
+            saveas(RegResults, figPath)
+        end
+
+
     else
         if infoStruct.Nplane == 15
             planeTicks = [1:3:15, 15];
@@ -305,6 +341,7 @@ if show
         else
             planeTicks = round(linspace(1, infoStruct.Nplane, infoStruct.Nplane/4));
         end
+        
         % Results of preliminary registration
         SP(3) = subtightplot(3,3,7,leftOpt{:});
         MakeDeformPlot( deformResultStruct.ZS_final, 'DFT Z shift', TL, runTicks, planeTicks, deformLim.shift )
@@ -317,55 +354,69 @@ if show
         MakeDeformPlot( deformResultStruct.CS_final, 'DFT Column shift', TL, runTicks, planeTicks, [-Inf,Inf] ) % deformLim.shift
         linkaxes(SP,'x');
         axis tight;
+
         
         % Uncensored Results of affine registration
+        
         % Z Shift
         sp(9) = subtightplot(7, 3, 20, rightOpt{:});
         MakeDeformPlot( deformResultStruct.shiftZ, 'Z Shift', TL, runTicks, planeTicks, deformLim.shift )
         xlabel('Volume Scan');
+        
         % Translation 
         sp(1) = subtightplot(7, 3, 2, rightOpt{:});
         MakeDeformPlot( deformResultStruct.transAP, 'AP Translation', TL, runTicks, planeTicks, deformLim.trans )
         title('Turboreg Registration Results');
         sp(2) = subtightplot(7, 3, 5, rightOpt{:});
         MakeDeformPlot( deformResultStruct.transML, 'ML Translation', TL, runTicks, planeTicks, deformLim.trans )
+        
         % Scaling
         sp(3) = subtightplot(7, 3, 8, rightOpt{:});
         MakeDeformPlot( deformResultStruct.scaleAP, 'AP Scale', TL, runTicks, planeTicks, deformLim.scale )
         sp(4) = subtightplot(7, 3, 11, rightOpt{:});
         MakeDeformPlot( deformResultStruct.scaleML, 'ML Scale', TL, runTicks, planeTicks, deformLim.scale ) 
-%         % Stretch
-%         sp(5) = subtightplot(7, 3, 9, rightOpt{:});
-%         MakeDeformPlot( deformResultStruct.stretchAP, 'AP Stretch', TL, runTicks, planeTicks, deformLim.stretch )
-%         sp(6) = subtightplot(7, 3, 12, rightOpt{:});
-%         MakeDeformPlot( deformResultStruct.stretchML, 'ML Stretch', TL, timeTicks, planeTicks, deformLim.stretch )
-%         % Shearing
+        
+        % Stretch
+        %{
+        sp(5) = subtightplot(7, 3, 9, rightOpt{:});
+        MakeDeformPlot( deformResultStruct.stretchAP, 'AP Stretch', TL, runTicks, planeTicks, deformLim.stretch )
+        sp(6) = subtightplot(7, 3, 12, rightOpt{:});
+        MakeDeformPlot( deformResultStruct.stretchML, 'ML Stretch', TL, timeTicks, planeTicks, deformLim.stretch )
+        %}
+
+        % Shearing
         sp(7) = subtightplot(7, 3, 14, rightOpt{:});
         MakeDeformPlot( deformResultStruct.shearAP, 'AP Shear', TL, runTicks, planeTicks, deformLim.shear )
         sp(8) = subtightplot(7, 3, 17, rightOpt{:});
         MakeDeformPlot( deformResultStruct.shearML, 'ML Shear', TL, runTicks, planeTicks, deformLim.shear )
 
         % Censored final results
+
         % Z shift
         sp(18) = subtightplot(9, 3, 27, rightOpt{:});
         MakeDeformPlot( vertcat(deformSubStruct.shiftZ), 'Z Shift (planes)', TL, runTicks, planeTicks, deformLim.shift )
         xlabel('Volume Scan');
+
         % Translation
         sp(10) = subtightplot(9, 3, 3, rightOpt{:});
         MakeDeformPlot( vertcat(deformSubStruct.transAP), 'AP Trans (um)', TL, runTicks, planeTicks, [-Inf,Inf] ) % deformLim.trans
         title('Final, Censored Deformation');
         sp(11) = subtightplot(9, 3, 6, rightOpt{:});
         MakeDeformPlot( vertcat(deformSubStruct.transML), 'ML Trans (um)', TL, runTicks, planeTicks, [-Inf,Inf] )
+
         % Scaling
         sp(12) = subtightplot(9, 3, 9, rightOpt{:});
         MakeDeformPlot( vertcat(deformSubStruct.scaleAP), 'AP Scale (um)', TL, runTicks, planeTicks, [-Inf,Inf] ) % deformLim.scale
         sp(13) = subtightplot(9, 3, 12, rightOpt{:});
         MakeDeformPlot( vertcat(deformSubStruct.scaleML), 'ML Scale (um)', TL, runTicks, planeTicks, [-Inf,Inf] )  
+
         % Stretch
         sp(14) = subtightplot(9, 3, 15, rightOpt{:});
         MakeDeformPlot( vertcat(deformSubStruct.stretchAP), 'AP Stretch (um/s)', TL, runTicks, planeTicks, [-Inf,Inf] ) % deformLim.stretch
         sp(15) = subtightplot(9, 3, 18, rightOpt{:});
         MakeDeformPlot( vertcat(deformSubStruct.stretchML), 'ML Stretch (um/s)', TL, runTicks, planeTicks, [-Inf,Inf] )
+        
+
         % Shearing
         sp(16) = subtightplot(9, 3, 21, rightOpt{:});
         MakeDeformPlot( vertcat(deformSubStruct.shearAP), 'AP Shear', TL, runTicks, planeTicks, [-Inf,Inf] )
@@ -375,6 +426,16 @@ if show
         linkaxes(sp,'xy');
         xlim([1,infoStruct.totScan]) %axis tight;
         impixelinfo;
+
+        % save the figure
+        figPath = sprintf('%s%s_RegResults', expt.dir, expt.name);
+        if ~exist(figPath, 'file') || overwrite
+            fprintf('\nSaving %s', figPath);
+            saveas(RegResults, figPath)
+        end
+
+
+
         end
 end
 end
