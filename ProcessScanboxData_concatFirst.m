@@ -1,10 +1,10 @@
 %% ProcessScanboxData reads master data spreadsheet and then processes (unpacks, concatenates, registers) scanbox imaging data
 
 % Clear any previous variables in the Workspace and Command Window to start fresh
-clear; clc; close all;
+clear all; clc; 
 
 % TODO --- Set the directory of where animal folders are located
-dataDir =  'D:\2photon\Simone\Simone_Macrophages\'; %  'D:\2photon\Simone\Simone_Macrophages\'; %  'D:\2photon\Simone\Simone_Vasculature\'
+dataDir =  'V:\2photon\Simone\Simone_Macrophages\'; %  'D:\2photon\Simone\Simone_Macrophages\'; %  'D:\2photon\Simone\Simone_Vasculature\', D:\2photon\Anna
 
 % Parse data table
 
@@ -12,13 +12,15 @@ dataDir =  'D:\2photon\Simone\Simone_Macrophages\'; %  'D:\2photon\Simone\Simone
 dataSet = 'Macrophage'; %'Macrophage'; % 'AffCSD'; %  'Pollen'; 'Vasculature'; 'Astrocyte'; %  'Anatomy'; %  'Neutrophil_Simone'; %  'NGC'; % 'Neutrophil'; % 'Afferents'
 [regParam, projParam] = DefaultProcessingParams(dataSet); % get default parameters for processing various types of data
 
-regParam.method = 'affine';
-regParam.name = 'affine';
+%regParam.method = 'translation';
+%regParam.turboreg = false; %set true or false(MATLAB function) when you are doing affine registration
+regParam.name = 'translation';
 
 % TODO --- Set data spreadsheet directory
-dataTablePath = 'R:\Levy Lab\2photon\ImagingDatasets.xlsx'; % 'R:\Levy Lab\2photon\ImagingDatasetsSimone2.xlsx';
-dataTable = readcell(dataTablePath, 'sheet',dataSet);  % 'NGC', ''
-colNames = dataTable(1,:); dataTable(1,:) = [];
+dataTablePath = 'R:\Levy Lab\2photon\ImagingDatasets_Simone_231228.xlsx'; 
+dataTable = readcell(dataTablePath, 'sheet',dataSet);  % 'NGC', 
+colNames = dataTable(1,:); 
+dataTable(1,:) = [];
 dataCol = struct('mouse',find(contains(colNames, 'Mouse')), 'date',find(contains(colNames, 'Date')), 'FOV',find(contains(colNames, 'FOV')), 'vascChan',find(contains(colNames, 'VascChan')),...
     'volume',find(contains(colNames, 'Volume')), 'run',find(contains(colNames, 'Runs')), 'Ztop',find(contains(colNames, 'Zbot')), 'Zbot',find(contains(colNames, 'Ztop')), 'csd',find(contains(colNames, 'CSD')), ...
     'ref',find(contains(colNames, 'Ref')), 'edges',find(contains(colNames, 'Edge')), 'Zproj',find(contains(colNames, 'Zproj')), 'done',find(contains(colNames, 'Done')));
@@ -29,7 +31,7 @@ dataTable(:,dataCol.date) = cellfun(@num2str, dataTable(:,dataCol.date), 'Unifor
 expt = cell(1,Nexpt); runInfo = cell(1,Nexpt); Tscan = cell(1,Nexpt); loco = cell(1,Nexpt); % Tcat = cell(1,Nexpt);
 
 % TODO --- Specify xPresent - row number(X) within excel sheet
-xPresent = 35; %; %13; %44; %[18,22,24,30:32]; % flip(100:102); %45:47; % [66:69];
+xPresent = 260; % [150:152]; 154; [156:157]; [170:171]; [173:175]
 Npresent = numel(xPresent);
 overwrite = false;
 
@@ -77,8 +79,8 @@ for x = xPresent  %30 %x2D % x2Dcsd % x3D %% 51
         
         regParam.refScan = regParam.refScan + expt{x}.scanLims(regParam.refRun);
     else
-        %regParam.refRun = 1;  % plot(loco{x}(regParam.refRun).Vdown)
-        regParam.refScan = 90:400; % Set reference run/scans by hand, if desired - scans WITHIN the reference run
+        regParam.refRun = 1;  % plot(loco{x}(regParam.refRun).Vdown)
+        regParam.refScan = 16000:16400; % Set reference run/scans by hand, if desired - scans WITHIN the reference run
     end
     
     % Concatenate unprocessed runs and metadata
@@ -115,8 +117,8 @@ for x = xPresent  %30 %x2D % x2Dcsd % x3D %% 51
     %TODO: set the projParam.z to the frames that you would like to process
     projParam.umPerPixel_target = expt{x}.umPerPixel; % set to expt{x}.umPerPixel to avoid spatial downsampling, otherwise give a number
     projParam.edge = [80,80,40,40];  % [80,80,40,40], crop these many pixels from the [L,R,T,B] edges
-    %projParam.z = {5, 5:7}; %{4:5, 5:7}{5, 7:8} {3:12}; %{17:22, 24:27, 18, 19, 20, 21, 22, 23}; %{3:17, 18:28, 18, 19, 20, 21, 22, 23}; %{17:22, 23:30}; %{29:56, 5:25}; % {7:10, 18:20, 27:30};  % 1; %
-    projParam.overwrite = false;
+    %projParam.z = {5:14}; %{3:4}; %{4:5, 5:7}{5, 7:8} 
+    projParam.overwrite = false; 
     %projParam.sbx_type = {'cat','dft','z','reg'}; % , 'z'
     projParam = GenerateExptProjections(expt{x}, catInfo{x}, Tscan{x}, projParam); % write projections of unregistered data by run
 
@@ -132,7 +134,7 @@ for x = xPresent  %30 %x2D % x2Dcsd % x3D %% 51
     end
 
     %Deformation Limits
-    deformLim = struct('trans',[-Inf,Inf], 'scale',[0.95, 1.05], 'shear',[-0.03, 0.03], 'shift',[-3.5, 3.5]); %, 'stretch' ,100*[-1,1]); %'trans',[-0.5, 0.5], scale(%), trans(px), z(planes), shear(
+    deformLim = struct('trans',[-Inf,Inf], 'scale',[0.95, 1.05], 'shear',[-0.03, 0.03], 'shift',[-3.5, 3.5]); %, 'stretch' ,100*[-1,1]); %'trans',[-0.5, 0.5], scale(%), trans(px), z(planes), shear( % 'scale',[0.95, 1.05]
     [~,deform{x}, ~, badInd] = GetDeformCat3D(expt{x}, catInfo{x}, deformLim, 'show',true, 'overwrite',true, 'window',find(Tscan{x}{1}<=32,1,'last'));  
     regProj = WriteSbxProjection(expt{x}.sbx.reg, catInfo{x}, 'verbose',true, 'chan','both', 'monochrome',true, 'RGB',true, 'type','reg', 'overwrite',overwrite); % , 'binT',10, 'overwrite',overwrite
     projParam.sbx_type = [projParam.sbx_type, {'reg'}];
@@ -145,4 +147,5 @@ for x = xPresent  %30 %x2D % x2Dcsd % x3D %% 51
         [periBout{x}(runs), periParam{x}(runs), ~] = PeriLoco(expt{x}, Tscan{x}{runs}, loco{x}(runs), deform{x}(runs), 'base',10, 'min_vel_on',2, 'merge',true,'show',true); % 'iso',[10,0] , showDefVars , fluor{x}(runs).F.axon, 'run',2,  
     end
 end
+
 clearvars Expt;
