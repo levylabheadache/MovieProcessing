@@ -17,7 +17,8 @@ function RunIJ()
 
         % Switch off warning
         warning_state = warning('off');
-        ijroot = 'D:\MATLAB\Movie Processing\minimal_ImageJ';
+        ijroot = 'H:\MATLAB\minimal_ImageJ';
+        %ijroot = 'D:\MATLAB\Movie Processing\minimal_ImageJ';
             
         javaaddpath(fullfile(ijroot,'ij.jar'));
         add_to_classpath(classpath, fullfile(ijroot, 'plugins'));
