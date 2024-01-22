@@ -4,13 +4,17 @@ function info = LoadSBXinfo(inputPath) % input path can be .sbx or .mat
 [inputDir, inputName, inputExt] = fileparts(inputPath);
 
 % Find the name of the info file and load it
-if ~isempty(inputDir), inputDir = [inputDir '\']; end
+if ~isempty(inputDir)
+    inputDir = [inputDir '\']; 
+end
 basePath = [inputDir inputName];
 infoPath = [basePath '.mat'];
 load(infoPath); % creates the info structure 
 
 % If bidirectional scanning, double the records per buffer
-if info.scanmode == 0,  info.recordsPerBuffer = info.recordsPerBuffer*2;  end
+if info.scanmode == 0
+    info.recordsPerBuffer = info.recordsPerBuffer*2;  
+end
 
 % How many channels were acquired?
 switch info.channels
@@ -59,8 +63,12 @@ end
 info.nframes = info.max_idx + 1;
 info.optotune_used = false;
 info.otlevels = 1;
-if isfield(info, 'volscan') && info.volscan > 0, info.optotune_used = true; end
-if ~isfield(info, 'volscan') && ~isempty(info.otwave), info.optotune_used = true; end
+if isfield(info, 'volscan') && info.volscan > 0
+    info.optotune_used = true; 
+end
+if ~isfield(info, 'volscan') && ~isempty(info.otwave) 
+    info.optotune_used = true; 
+end
 if info.optotune_used
     if isfield(info, 'otwave')
         info.otlevels = length(info.otwave);
