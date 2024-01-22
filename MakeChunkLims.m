@@ -15,8 +15,12 @@ if isnan(Nchunk)
     chunkLims(:,1) = (firstScan:chunkSize:lastScan)'; 
     chunkLims(:,2) = chunkLims(:,1) + chunkSize - 1;
     chunkLims( chunkLims(:,1) > totScan, : ) = [];
-    if chunkLims(end,2) > totScan, chunkLims(end,2) = totScan; end
-    if chunkLims(end,2) > lastScan, chunkLims(end,2) = lastScan; end
+    if chunkLims(end,2) > totScan
+        chunkLims(end,2) = totScan; 
+    end
+    if chunkLims(end,2) > lastScan
+        chunkLims(end,2) = lastScan; 
+    end
     Nchunk = size(chunkLims, 1);
 elseif ~isnan(Nchunk)
     chunkLims = round(linspace(firstScan,lastScan,Nchunk+1))';
