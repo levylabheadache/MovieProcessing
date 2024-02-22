@@ -56,14 +56,15 @@ if exist(expt.dir, 'dir')
         if isempty(dataCol.csd) || missingData(x,dataCol.csd)
             expt.csd = NaN;  expt.Ncsd = 0;
         else
-            expt.csd = dataTable{x,dataCol.csd};  expt.Ncsd = numel(expt.csd);
+            expt.csd = dataTable{x,dataCol.csd};  
+            expt.Ncsd = numel(expt.csd);
         end
         if isnan(expt.csd)
             expt.preRuns = expt.runs;
             expt.postRuns = [];
         else
             expt.preRuns = 1:expt.csd(1)-1;
-            expt.postRuns = expt.csd(1)+1:expt.Nruns;
+            expt.postRuns = expt.csd(1):expt.Nruns; %expt.csd(1)+1 SCN 02/22/2024 - removed +1 to account CSD run as postRun (confirmed with Andy)
         end
         
         % Check for Vascular channel
