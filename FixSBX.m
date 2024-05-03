@@ -38,12 +38,20 @@ if ~exist(sbxFixPath, 'file') || overwrite
     toc
 
     % Adjust the metadata to reflect the new parameters (NOTE - other fields may need to be adjusted)
+    
+    % Extract the first column from etl_table to get otwave ----> NEW OPTOTUNE
+    sbxInputInfo.otwave = cellfun(@(x) x(1), sbxInputInfo.etl_table(:,2)');
+    sbxInputInfo.otwave = uint16(sbxInputInfo.otwave);
+        
     sbxOutputInfo = sbxInputInfo;
     sbxOutputInfo.path = sbxFixPath;
     sbxOutputInfo.Nscan = Nscan;
     sbxOutputInfo.Nplane = Nplane;
     sbxOutputInfo.otlevels = Nplane;
-    if flipZ,  sbxOutputInfo.otwave = flip(sbxOutputInfo.otwave);  end
+   
+    if flipZ
+        sbxOutputInfo.otwave = flip(sbxOutputInfo.otwave);  
+    end
     sbxOutputInfo.otwave = sbxInputInfo.otwave(zUse);
     sbxOutputInfo.nframes = sbxOutputInfo.Nscan*sbxOutputInfo.Nplane;
     sbxOutputInfo.max_idx = sbxOutputInfo.nframes-1;
