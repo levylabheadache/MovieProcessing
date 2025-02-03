@@ -4,20 +4,20 @@
 clear all; clc; 
 
 % TODO --- Set the directory of where animal folders are located
-dataDir =  'V:\2photon\Simone\Simone_Macrophages\'; %  'D:\2photon\Simone\Simone_Macrophages\'; %  'D:\2photon\Simone\Simone_Vasculature\', D:\2photon\Anna
+dataDir =  'D:\2photon\Simone\Simone_Macrophages\'; %  'D:\2photon\Simone\Simone_Macrophages\'; %  'D:\2photon\Simone\Simone_Vasculature\', D:\2photon\Anna
 
 % Parse data table
 
 % TODO --- Set excel sheet
-dataSet = 'Macrophage'; %'Macrophage'; % 'AffCSD'; %  'Pollen'; 'Vasculature'; 'Astrocyte'; %  'Anatomy'; %  'Neutrophil_Simone'; %  'NGC'; % 'Neutrophil'; % 'Afferents'
+dataSet = 'MacrophageBaseline_craniotomy'; %'Macrophage'; % 'AffCSD'; %  'Pollen'; 'Vasculature'; 'Astrocyte'; %  'Anatomy'; %  'Neutrophil_Simone'; %  'NGC'; % 'Neutrophil'; % 'Afferents'
 [regParam, projParam] = DefaultProcessingParams(dataSet); % get default parameters for processing various types of data
 
 %regParam.method = 'translation';
 %regParam.turboreg = false; %set true or false(MATLAB function) when you are doing affine registration
-regParam.name = 'translation';
+regParam.name = 'translation'; %affine %translation
 
 % TODO --- Set data spreadsheet directory
-dataTablePath = 'R:\Levy Lab\2photon\ImagingDatasets_Simone_231228.xlsx'; 
+dataTablePath = 'R:\Levy Lab\2photon\ImagingDatasets_Simone_241017.xlsx';  %R:\Levy Lab\2photon\ImagingDatasets_Simone.xlsx
 dataTable = readcell(dataTablePath, 'sheet',dataSet);  % 'NGC', 
 colNames = dataTable(1,:); 
 dataTable(1,:) = [];
@@ -31,10 +31,10 @@ dataTable(:,dataCol.date) = cellfun(@num2str, dataTable(:,dataCol.date), 'Unifor
 expt = cell(1,Nexpt); runInfo = cell(1,Nexpt); Tscan = cell(1,Nexpt); loco = cell(1,Nexpt); % Tcat = cell(1,Nexpt);
 
 % TODO --- Specify xPresent - row number(X) within excel sheet
-xPresent = 260; % [150:152]; 154; [156:157]; [170:171]; [173:175]
+xPresent = 21; % [150:152]; 154; [156:157]; [170:171]; [173:175]
 Npresent = numel(xPresent);
 overwrite = false;
-
+%% 
 for x = xPresent  %30 %x2D % x2Dcsd % x3D %% 51
     % Parse data table
     [expt{x}, runInfo{x}, regParam, projParam] = ParseDataTable(dataTable, x, dataCol, dataDir, regParam, projParam);
@@ -117,7 +117,7 @@ for x = xPresent  %30 %x2D % x2Dcsd % x3D %% 51
     %TODO: set the projParam.z to the frames that you would like to process
     projParam.umPerPixel_target = expt{x}.umPerPixel; % set to expt{x}.umPerPixel to avoid spatial downsampling, otherwise give a number
     projParam.edge = [80,80,40,40];  % [80,80,40,40], crop these many pixels from the [L,R,T,B] edges
-    %projParam.z = {5:14}; %{3:4}; %{4:5, 5:7}{5, 7:8} 
+    %projParam.z = {7:13}; %{3:4}; %{4:5, 5:7}{5, 7:8} 
     projParam.overwrite = false; 
     %projParam.sbx_type = {'cat','dft','z','reg'}; % , 'z'
     projParam = GenerateExptProjections(expt{x}, catInfo{x}, Tscan{x}, projParam); % write projections of unregistered data by run

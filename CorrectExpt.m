@@ -171,7 +171,9 @@ if ~exist('CS_final','var')
 
         fprintf('\nRegistering z-projection... '); tic
         [zproj_mean, R_zproj, C_zproj] = zproj_reg(1, sbxInfo.totScan, usePMT, zProjRange, 'refchan',1, 'zproj_raw',zproj_raw); % refPMT
-        if ~isempty(zprojPath),  write2chanTiff(uint16(zproj_mean), zprojPath);  end
+        if ~isempty(zprojPath)
+            write2chanTiff(uint16(zproj_mean), zprojPath);  
+        end
         R_zproj = transpose(repmat(R_zproj,1,sbxInfo.Nplane));
         C_zproj = transpose(repmat(C_zproj,1,sbxInfo.Nplane));
         RS_final = RS_total + R_zproj;

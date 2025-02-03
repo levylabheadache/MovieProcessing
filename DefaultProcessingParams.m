@@ -15,7 +15,7 @@ regParam.avgTsigma = 0; % 5
 regParam.binT = 1; % temporal downsampling - not currently implemented, keep at 1
 regParam.histmatch = false; % true; % enable if registration struggles due to bleaching
 regParam.method = ''; % use affine to get deformation, rigid just to align data
-regParam.turboreg = true;
+regParam.turboreg = true; %true
 regParam.name = ''; % names can be used to distinguish different versions of registration
 
 % Projection parameters
@@ -43,8 +43,8 @@ switch lower(dataSet)
         projParam.vol = false;
     case 'macrophage'
         regParam.refChan = 'red';
-        regParam.method = 'translation'; 
-        projParam.rate_target = 1; % Hz
+        regParam.method = 'translation'; %translation
+        projParam.rate_target = 1; % 1Hz
         projParam.color = {'red','green'};
         projParam.vol = false;
     case 'pollen'
@@ -54,10 +54,10 @@ switch lower(dataSet)
         projParam.color = {'red','green'}; % 'red',
         projParam.vol = true;
     case 'vasculature'
-        regParam.refChan = 'green'; %red
-        regParam.method = 'affine'; %'translation' 'affine'
+        regParam.refChan = 'red'; %red
+        regParam.method = 'translation'; %'translation' 'affine'
         projParam.rate_target = 1; % Hz
-        projParam.color = {'green'}; %'red','green'
+        projParam.color = {'red'}; %'red','green'
         projParam.vol = false;
     otherwise
         regParam.refChan = 'green';

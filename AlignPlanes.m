@@ -9,7 +9,7 @@ addParameter( IP, 'repair', [], @isstruct )
 addParameter( IP, 'outPath', '', @ischar )
 addParameter( IP, 'sbx', true, @islogical )
 addParameter( IP, 'tif', 'none', @ischar ) % can be  'none', 'int', 'final', or 'both'
-addParameter( IP, 'overwrite', false, @islogical )
+addParameter( IP, 'overwrite', true, @islogical )
 parse( IP, sbxInputPath, sbxInfo, params, varargin{:} ); 
 refVol = IP.Results.refVol;
 tifToggle = IP.Results.tif;
@@ -37,7 +37,9 @@ if exist( tformPath, 'file' ) && ~overwrite
     fprintf('\nLoading %s... ', tformPath );
     load( tformPath ); % 'sbxPath', 'sbxInfo', 'refVol', 'params', 'tforms_all'
     zReg = find( any( cellfun(@isempty, regTform), 2 ) )';
-    if ~isempty(zReg),  fprintf('\n   %s already exists - finishing off from z = %i', tformPath, zReg(1) ); end
+    if ~isempty(zReg)
+        fprintf('\n   %s already exists - finishing off from z = %i', tformPath, zReg(1) ); 
+    end
 else
     zReg = 1:sbxInfo.Nplane;
     regTform = cell(sbxInfo.Nplane, sbxInfo.totScan); 
@@ -54,13 +56,17 @@ if isempty( params.refScan )
 end
 
 % Set up a name (optional) and directory where results will be temporarily saved to
-if ~isempty(params.name), params.name = strcat('_', params.name); end
+if ~isempty(params.name)
+    params.name = strcat('_', params.name); 
+end
 if isempty(params.name)
     nameStr = '';
 else
     nameStr = ['_',params.name];
 end
-regDir = strcat(sbxInfo.dir,'\RegTemp\'); mkdir(regDir);
+
+regDir = strcat(sbxInfo.dir,'\RegTemp\'); 
+mkdir(regDir);
 
 if ~isempty(zReg)
     % Define the reference volume (use middle 50% of data by default)
@@ -69,7 +75,8 @@ if ~isempty(zReg)
         %    params.refScan = ceil(sbxInfo.Nplane/4):floor(3*sbxInfo.Nplane/4); %   %ceil(sbxInfo.Nplane/2)-25:ceil(sbxInfo.Nplane/2)+25; 
         %end
         fprintf('\nAveraging scans %i - %i for reference volume\n', params.refScan(1), params.refScan(end));
-        refVol = WriteSbxProjection(sbxInputPath, sbxInfo, 'firstScan',params.refScan(1), 'Nscan',numel(params.refScan), 'type','ref', 'chan',params.refChan, ...
+        refVol = WriteSbxProjection(sbxInputPath, sbxInfo, 'firstScan',params.refScan(1), ...
+            'Nscan',numel(params.refScan), 'type','ref', 'chan',params.refChan, ...
             'verbose',true, 'monochrome',true, 'RGB',false, 'overwrite',overwrite); % 
     end
     refVol = uint16(refVol);

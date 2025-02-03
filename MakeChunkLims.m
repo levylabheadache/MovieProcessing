@@ -5,7 +5,7 @@ addRequired( IP, 'lastScan', @isnumeric )
 addOptional( IP, 'totScan', lastScan, @isnumeric )
 addParameter( IP, 'N',NaN, @isnumeric )
 addParameter( IP, 'size',NaN, @isnumeric )
-addParameter( IP, 'allowPartial',false, @islogical )
+addParameter( IP, 'allowPartial',false, @islogical ) %it determined whether to use partial bin (in cases where number of frames is not fully divisible) or drop it
 parse( IP, firstScan, lastScan, totScan, varargin{:} );
 totScan = IP.Results.totScan;
 Nchunk = IP.Results.N;

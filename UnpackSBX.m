@@ -4,7 +4,7 @@
 clear; clc; close all; 
 
 % TODO --- Set the directory of your 'sbx' files
-mainDir = 'D:\2photon\Simone\Simone_Vasculature\AnimalFolder\'; 
+mainDir = 'D:\2photon\Simone\Simone_Macrophages\Pf4Ai162-23\'; 
 % add '\' to mainDir if it is not included
 if mainDir(end) ~= '\'
     mainDir(end+1) = '\';

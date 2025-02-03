@@ -40,9 +40,9 @@ if ~exist(sbxFixPath, 'file') || overwrite
     % Adjust the metadata to reflect the new parameters (NOTE - other fields may need to be adjusted)
     
     % Extract the first column from etl_table to get otwave ----> NEW OPTOTUNE
-    sbxInputInfo.otwave = cellfun(@(x) x(1), sbxInputInfo.etl_table(:,2)');
-    sbxInputInfo.otwave = uint16(sbxInputInfo.otwave);
-        
+%     sbxInputInfo.otwave = cellfun(@(x) x(1), sbxInputInfo.etl_table(:,2)');
+%     sbxInputInfo.otwave = uint16(sbxInputInfo.otwave);
+%         
     sbxOutputInfo = sbxInputInfo;
     sbxOutputInfo.path = sbxFixPath;
     sbxOutputInfo.Nscan = Nscan;
